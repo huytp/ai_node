@@ -6,9 +6,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, Optional
 import uvicorn
 
-from models import RouteRequest, RouteResponse, NodeMetrics, ReputationUpdate
+from models import RouteRequest, RouteResponse, NodeMetrics, ReputationUpdate, URLCheckRequest, URLCheckResponse
 from bandit import ContextualBandit
 from anomaly_detection import AnomalyDetector
+from url_detector import url_detector
 
 app = FastAPI(
     title="AI Routing Engine",
@@ -198,6 +199,30 @@ async def list_nodes():
         "nodes": nodes,
         "count": len(nodes)
     }
+
+
+@app.post("/url/check", response_model=URLCheckResponse)
+async def check_url(request: URLCheckRequest):
+    """
+    Kiểm tra URL có độc hại không
+
+    Args:
+        request: URLCheckRequest với URL cần kiểm tra
+
+    Returns:
+        URLCheckResponse với kết quả phân tích
+    """
+    try:
+        result = url_detector.predict(request.url)
+
+        return URLCheckResponse(
+            url=request.url,
+            is_malicious=result['is_malicious'],
+            probability=round(result['probability'], 4),
+            confidence=result['confidence']
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error checking URL: {str(e)}")
 
 
 if __name__ == "__main__":

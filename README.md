@@ -52,6 +52,51 @@ Cập nhật reputation với anomaly detection
 ### GET /nodes
 Liệt kê tất cả nodes
 
+### POST /url/check
+Kiểm tra URL có độc hại không
+
+Request:
+```json
+{
+  "url": "https://example.com/suspicious-page"
+}
+```
+
+Response:
+```json
+{
+  "url": "https://example.com/suspicious-page",
+  "is_malicious": true,
+  "probability": 0.85,
+  "confidence": "high"
+}
+```
+
+## Malicious URL Detection
+- Sử dụng Logistic Regression để phát hiện URL độc hại
+- Feature extraction từ URL characteristics:
+  - URL length, số dots, hyphens
+  - Số subdirectories, parameters
+  - Có IP address, suspicious keywords, suspicious TLDs
+  - URL shortening services
+  - Special characters ratio
+- Model được train từ `urldata.csv` (nếu có) hoặc synthetic data (fallback)
+- Model được lưu tại `url_detector_model.pkl`
+
+### Training Data
+Model tự động load và train từ `data/urldata.csv` khi khởi động.
+
+File CSV đã có sẵn tại: `ai-routing/data/urldata.csv`
+
+Format CSV:
+- Cột 1: `url` - URL cần kiểm tra (có thể không có protocol)
+- Cột 2: `label` - `good` (benign) hoặc `bad` (malicious)
+
+Model sẽ tự động:
+- Thêm `http://` prefix nếu URL thiếu protocol
+- Xử lý labels: `bad` → malicious (1), `good` → benign (0)
+- Train với toàn bộ dataset (~420k URLs)
+
 ## Reputation Update
 - Anomaly detection (Z-score)
 - Output → backend → blockchain

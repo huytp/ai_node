@@ -39,3 +39,16 @@ class ReputationUpdate(BaseModel):
     z_score: float = Field(..., description="Z-score từ anomaly detection")
     is_anomaly: bool = Field(..., description="Có phải anomaly không")
 
+
+class URLCheckRequest(BaseModel):
+    """Request để kiểm tra URL độc hại"""
+    url: str = Field(..., description="URL cần kiểm tra")
+
+
+class URLCheckResponse(BaseModel):
+    """Response từ URL check"""
+    url: str = Field(..., description="URL đã kiểm tra")
+    is_malicious: bool = Field(..., description="URL có độc hại không")
+    probability: float = Field(..., ge=0, le=1, description="Xác suất URL độc hại [0-1]")
+    confidence: str = Field(..., description="Độ tin cậy: low, medium, high")
+
