@@ -386,6 +386,24 @@ class MaliciousURLDetector:
                 'confidence': 'low'
             }
 
+        # Check if domain is google.com (whitelist)
+        try:
+            parsed = urllib.parse.urlparse(url)
+            domain = parsed.netloc or parsed.path.split('/')[0]
+            # Remove port if present
+            domain = domain.split(':')[0]
+            # Remove www. prefix and convert to lowercase
+            domain_normalized = domain.lower().replace('www.', '')
+            if domain_normalized == 'google.com':
+                return {
+                    'is_malicious': False,
+                    'probability': 0.0,
+                    'confidence': 'high'
+                }
+        except Exception:
+            # If parsing fails, continue with normal prediction
+            pass
+
         # Extract features
         features = np.array([self.feature_extractor.extract_features(url)])
 
